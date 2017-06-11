@@ -1,0 +1,648 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="http://docbook.org/xml/5.0/rng/docbook.rng" schematypens="http://relaxng.org/ns/structure/1.0"?>
+<?xml-model href="http://docbook.org/xml/5.0/rng/docbook.rng" type="application/xml" schematypens="http://purl.oclc.org/dsdl/schematron"?>
+<article xmlns="http://docbook.org/ns/docbook" xmlns:xlink="http://www.w3.org/1999/xlink"
+    version="5.0">
+    <info>
+        <title>Urban Legend or Best Practice</title>
+        <subtitle>Teaching XSLT in The Age of Stack Overflow</subtitle>
+        <author>
+            <personname>
+                <firstname>Nic</firstname>
+                <surname>Gibson</surname>
+            </personname>
+            <email>nicg@corb.as</email>
+        </author>
+    </info>
+
+    <section xml:id="background">
+        <title>Background</title>
+        <para> Traditional approaches to teaching XSLT and other development technologies are
+            undergoing rapid change. The rise of online training platforms and peer to peer
+            environments such as stackoverflow.com have changed the way that developers learn
+            technologies. In the XSLT world we are extremely lucky to have some amazing people
+            answering questions on the Mulberry mailing list and Stack Overflow. However, when a
+            developer asks a question on Stack Overflow or uses Google to find an existing answer,
+            the <emphasis>why</emphasis> behind any particular answer is often lost. </para>
+        <para> A recent exchange on Stack Overflow (SO) led me to wonder how much of our best
+            practice might be urban legend and to consider how XSLT and other technologies could be
+            taught well in this online environment. </para>
+        <para> This paper investigates one of these questions and answers and considers whether ten
+            year old questions and answers are the wisdom of the ages or myths and legends. I will
+            consider whether answering questions online should be part of a teaching or training
+            experience or whether it is simply outsourced problem solving. Which of these approaches
+            leads to higher quality XSLT development (and developers)? </para>
+    </section>
+    <section xml:id="investigation">
+        <title>Investigation</title>
+        <para> Let us look at the following question asked on SO earlier this year<footnote>
+                <para>
+                    <link
+                        xlink:href="https://stackoverflow.com/questions/42023432/extract-unique-elements-from-the-input-xslt"
+                        >https://stackoverflow.com/questions/42023432/extract-unique-elements-from-the-input-xslt</link>
+                </para>
+            </footnote>: </para>
+        <blockquote>
+            <para> Extract unique elements from the input XSLT </para>
+            <para> For example the input is this: </para>
+            <programlisting>
+&lt;root&gt;
+  &lt;command name=&quot;comm1&quot;&gt;aa&lt;/command&gt;
+  &lt;command name=&quot;comm2&quot;&gt;bb&lt;/command&gt;
+  &lt;command name=&quot;comm3&quot;&gt;cc&lt;/command&gt;
+  &lt;command name=&quot;comm3&quot;&gt;dd&lt;/command&gt;
+  &lt;command name=&quot;comm2&quot;&gt;ee&lt;/command&gt;
+  &lt;command name=&quot;comm1&quot;&gt;ff&lt;/command&gt;
+  &lt;command name=&quot;comm5&quot;&gt;gg&lt;/command&gt;
+&lt;/root&gt;
+          
+</programlisting>
+            <para> The desired output is this: </para>
+            <programlisting>
+&lt;root&gt;
+  &lt;command name=&quot;comm1&quot;&gt;aa&lt;/command&gt;
+  &lt;command name=&quot;comm2&quot;&gt;bb&lt;/command&gt;
+  &lt;command name=&quot;comm3&quot;&gt;cc&lt;/command&gt;
+  &lt;command name=&quot;comm5&quot;&gt;gg&lt;/command&gt;
+&lt;/root&gt;
+            
+</programlisting>
+            <para> You can see that at the output, we don't have repeating tags ,the text values are
+                not important here. </para>
+        </blockquote>
+        <para> I answered this question in the way that many people seem to do on SO. That is, I
+            dashed off a quick answer without thinking clearly about the answer. I chose an answer
+            that was the simple possible in terms of XSLT because I hoped to provide something that
+            didn't need explanation: </para>
+        <programlisting>
+&lt;xsl:template match=&quot;command&quot;&gt;
+    &lt;xsl:if test=&quot;not(preceding-sibling::command[@name = current()/@name])&quot;&gt;
+        &lt;xsl:copy-of select=&quot;.&quot;/&gt;
+    &lt;/xsl:if&gt;
+&lt;/xsl:template&gt;
+</programlisting>
+        <para> I gave an XSLT 2.0 solution as well: </para>
+        <programlisting>
+&lt;xsl:template match=&quot;command[preceding-sibling::command[@name = current()/@name]]&quot;/&gt;
+</programlisting>
+        <para> Martin Honnen pointed out that this was not a good answer and referred to Jeni
+            Tennison's explanation of Muenchian grouping. We disagreed because I felt that a simple
+            solution was better than a complex one in this circumstance. </para>
+        <para> In order to determine how much better the efficient approach is compared to the
+            simple approach, I have used a dataset the matches the one given in the question above
+            but varies from ten distinct elements to five hundred distinct elements with from 0% to
+            50% duplication (so a five hundred distinct value set will include randomised sets of
+            values containing a total of five hundred to seven hundred and fifty elements). Five
+            variants were created at each level of duplication to increase confidence that the data
+            was actually randomised. Given a maximum number of twenty different duplications and
+            using a step of ten unique elements, this led to around two thousand documents. </para>
+        <para> Each document was processed using xsltproc, Saxon 9.7 and MSXSL 4.0. The data
+            suggests that, whilst different approaches obviously give differing results, they are
+            not as significant as one might hope. Three different XSLT variants are used although
+            xsltproc and MSXSL cannot be used with and XSLT 2.0 or 3.0 solution. </para>
+    </section>
+    <section xml:id="testing-the-concept">
+        <title> Testing The Concept</title>
+        <para> Given the conversation on SO, testing the hypothesis that the simpler answer is often
+            as good as the most effective answer, it seemed appropriate to generate some
+            experimental data. Given that different users will be working in different environments,
+            it seemed wise to generate data using different tools. There are a limited number of
+            easily available XSLT processors so I used the following processors: </para>
+        <itemizedlist spacing="compact">
+            <listitem>
+                <para> Saxon 9.7 EE (Java) </para>
+            </listitem>
+            <listitem>
+                <para> Microsoft MSXSL 4 </para>
+            </listitem>
+            <listitem>
+                <para> XSLTproc 20904 </para>
+            </listitem>
+        </itemizedlist>
+        <para> I ran all tests using an Apple iMac with a quad core 2.9Ghz i7 processor and 32 GB
+            RAM. XSLTproc and Saxon were tested under MacOS whilst Microsoft MSXSL 4 was tested on a
+            virtual machine running Windows 7. </para>
+        <section xml:id="test-data">
+            <title> Test Data</title>
+            <para> In order to test the various approaches to resolving this problem, I generated a
+                set of data (using XSLT 3 running under Saxon EE). All of the elements were variants
+                on </para>
+            <programlisting>
+&lt;root&gt;
+  &lt;command name=&quot;command1&quot;/&gt;
+  &lt;command name=&quot;command2&quot;/&gt;
+&lt;/root&gt;
+</programlisting>
+            <para> The data was generated by generating one thousand variants on
+                    <literal>&lt;command/&gt;</literal> as above. From that set of data between ten
+                and one thousand elements were selected with an interval of ten </para>
+            <para> For each set of unique elements, random duplicates were added (using
+                    <literal>fn:random-number-generator()</literal>). A range of random elements
+                representing between one and fifty percent of the total was generated. In order to
+                keep the number of documents to a reasonable size no more than 20 sets of duplicates
+                spread evenly between one and fifty percent were generated: </para>
+            <informaltable>
+                <tgroup cols="3">
+                    <colspec align="left"/>
+                    <colspec align="left"/>
+                    <colspec align="left"/>
+                    <thead>
+                        <row>
+                            <entry> Uniques </entry>
+                            <entry> Duplicates </entry>
+                            <entry> Step </entry>
+                        </row>
+                    </thead>
+                    <tbody>
+                        <row>
+                            <entry> 10 </entry>
+                            <entry> 1 to 5 </entry>
+                            <entry> 1 </entry>
+                        </row>
+                        <row>
+                            <entry> 100 </entry>
+                            <entry> 2 to 50 </entry>
+                            <entry> 2 or 3 </entry>
+                        </row>
+                        <row>
+                            <entry> 1000 </entry>
+                            <entry> 25 to 500 </entry>
+                            <entry> 50 </entry>
+                        </row>
+                    </tbody>
+                </tgroup>
+            </informaltable>
+            <para> Each combination of unique and duplicate elements was generated five times and
+                the elements were ordered randomly before being output to documents. The generating
+                script is in Appendix A. </para>
+            <para> For the purpose of analysis the mean of each of the five sets for each
+                unique/duplicate pair was used. </para>
+        </section>
+        <section xml:id="test-scripts">
+            <title> Test Scripts</title>
+            <para> I used eight different test scripts. Each of these is very simple and tries to
+                resolve the problem in a different way. Each script was run against the full output
+                set of 16,980 files (five variants of each unique/duplicate pair). There are only
+                three fundamental approaches: </para>
+            <itemizedlist spacing="compact">
+                <listitem>
+                    <para> Predicates </para>
+                </listitem>
+                <listitem>
+                    <para> Grouping </para>
+                </listitem>
+                <listitem>
+                    <para> Distinct Values </para>
+                </listitem>
+            </itemizedlist>
+            <section xml:id="xsl-1-predicate.xsl">
+                <title> 1. xsl-1-predicate.xsl</title>
+                <para> This was the approach I suggested on SO. There are three variants of this
+                    scripte using XSLT 1.0, 2.0, and 3.0. Unfortunately, only the first could be
+                    tested using multiple processors. It is not intended to be efficient just
+                    simple. </para>
+                <programlisting>
+&lt;xsl:stylesheet xmlns:xsl=&quot;http://www.w3.org/1999/XSL/Transform&quot;  version=&quot;1.0&quot;&gt;
+  &lt;xsl:template match=&quot;@*|node()&quot;&gt;
+    &lt;xsl:copy&gt;
+      &lt;xsl:apply-templates select=&quot;@*|node()&quot;/&gt;
+    &lt;/xsl:copy&gt;
+  &lt;/xsl:template&gt;
+  
+  &lt;xsl:template match=&quot;command&quot;&gt;
+    &lt;xsl:if test=&quot;not(preceding-sibling::*[@name = current()/@name])&quot;&gt;
+      &lt;xsl:copy-of select=&quot;.&quot;/&gt;
+    &lt;/xsl:if&gt;
+  &lt;/xsl:template&gt;
+  
+&lt;/xsl:stylesheet&gt;
+</programlisting>
+            </section>
+            <section xml:id="xsl-1-group.xsl">
+                <title>2. xsl-1-group.xsl</title>
+                <para> This is a more efficient stylesheet using Muenchian Grouping. This is the
+                    stylesheet that would probably have been the best solution in XSLT 1.0 </para>
+                <programlisting>
+&lt;xsl:stylesheet xmlns:xsl=&quot;http://www.w3.org/1999/XSL/Transform&quot; version=&quot;1.0&quot;&gt;
+
+   &lt;xsl:key name=&quot;element-key&quot; match=&quot;command&quot; use=&quot;@name&quot;/&gt;
+  
+  &lt;xsl:template match=&quot;root&quot;&gt;
+    &lt;root&gt;
+      &lt;xsl:for-each select=&quot;*[count(. | key('element-key', @name)[1]) = 1] &quot;&gt;
+        &lt;xsl:copy-of select=&quot;.&quot;/&gt;
+      &lt;/xsl:for-each&gt;
+    &lt;/root&gt;
+  &lt;/xsl:template&gt;
+  
+&lt;/xsl:stylesheet&gt;
+</programlisting>
+            </section>
+            <section xml:id="xsl-2-predicate.xsl">
+                <title>3. xsl-2-predicate.xsl</title>
+                <para> This stylesheet simply moves the predicate into the <literal>match</literal>
+                    attribute of the template. </para>
+                <programlisting>
+&lt;xsl:stylesheet xmlns:xsl=&quot;http://www.w3.org/1999/XSL/Transform&quot;  version=&quot;2.0&quot;&gt;
+  &lt;xsl:template match=&quot;@*|node()&quot;&gt;
+    &lt;xsl:copy&gt;
+      &lt;xsl:apply-templates select=&quot;@*|node()&quot;/&gt;
+    &lt;/xsl:copy&gt;
+  &lt;/xsl:template&gt;
+ 
+  &lt;xsl:template match=&quot;command[preceding-sibling::command[@name = current()/@name]]&quot;/&gt;
+  
+&lt;/xsl:stylesheet&gt;
+</programlisting>
+            </section>
+        </section>
+        <section xml:id="xsl-2-group-by.xsl">
+            <title>4. xsl-2-group-by.xsl</title>
+            <para> This stylesheet uses <literal>xsl-for-each-group</literal> to generate the same
+                result. A useful additional test would have been to use
+                    <literal>xsl:sequence</literal> instead of <literal>xsl:copy-of</literal> but
+                that was simply another variant on the same theme. </para>
+            <programlisting>
+&lt;xsl:stylesheet xmlns:xsl=&quot;http://www.w3.org/1999/XSL/Transform&quot; version=&quot;2.0&quot;&gt;
+  
+  &lt;xsl:template match=&quot;root&quot;&gt;
+    &lt;root&gt;
+      &lt;xsl:for-each-group select=&quot;command&quot; group-by=&quot;@name&quot;&gt;
+        &lt;xsl:copy-of select=&quot;.&quot;/&gt;
+      &lt;/xsl:for-each-group&gt;
+    &lt;/root&gt;
+  &lt;/xsl:template&gt;
+  
+&lt;/xsl:stylesheet&gt;
+</programlisting>
+            <section xml:id="xsl-2-distinct-values.xsl">
+                <title>5. xsl-2-distinct-values.xsl</title>
+                <para> This stylesheet uses the <literal>distinct-values()</literal> function from
+                    XPath 2.0 to resolve the issue in a different way. The preceding stylesheets all
+                    retain the elements in some way whilst this one completely rewrites them and
+                    would not be suitable for use in any more complex 'real-world' situation. </para>
+                <programlisting>
+&lt;xsl:stylesheet xmlns:xsl=&quot;http://www.w3.org/1999/XSL/Transform&quot;  version=&quot;2.0&quot;&gt;
+
+  
+  &lt;xsl:template match=&quot;root&quot;&gt;
+    &lt;root&gt;
+      &lt;xsl:for-each select=&quot;distinct-values(command/@name)&quot;&gt;
+        &lt;command name=&quot;{.}&quot;/&gt;
+      &lt;/xsl:for-each&gt;    
+    &lt;/root&gt;
+  &lt;/xsl:template&gt;
+  
+&lt;/xsl:stylesheet&gt;
+</programlisting>
+            </section>
+            <section xml:id="xslt-3.0-variants.">
+                <title>XSLT 3.0 variants.</title>
+                <para> The remaining two stylesheets were simply minor modifications to stylesheets
+                    1 and 3. The identity transformation was replaced by: </para>
+                <programlisting>
+&lt;xsl:mode on-no-match=&quot;shallow-copy&quot;/&gt;
+</programlisting>
+            </section>
+        </section>
+        <section xml:id="process">
+            <title>Process</title>
+            <para> Each of the XSLT engines has a command line interface and each is able to report
+                on processing times. For each of these the time to process the input documents was
+                ignored and only the time taken to execute the stylesheet was used. </para>
+        </section>
+        <section xml:id="results">
+            <title>Results</title>
+            <para> The most obvious result was that Microsoft's MSXSL processor is dramatically
+                faster at XSLT 1.0 than the other processors. However, MSXSL is old and has not been
+                updated in ten years. We can see from the initial results mentioned above that an
+                optimised solution does increase performance, but that the performance benefits are
+                not as significant as one might hope given that the maximum processing time was
+                still under two seconds. </para>
+            <figure>
+                <title>XSLT 1.0 Predicates</title>
+                <mediaobject>
+                    <imageobject>
+                        <imagedata fileref="images/xslt-1-predicates.svg"/>
+                    </imageobject>
+                </mediaobject>
+            </figure>
+            <para> The approach suggested by Martin Honnen provides better results by a factor of up
+                to one thousand. The performance of MSXSL at both tests is similar and leads to
+                suspicions about the validity of the data provided by the tool. </para>
+            <figure>
+                <title>XSLT 1.0 Groups</title>
+                <mediaobject>
+                    <imageobject>
+                        <imagedata fileref="images/xslt-1-grouping.svg"/>
+                    </imageobject>                  
+                </mediaobject>
+            </figure>
+            <para> The overall flatness of the graphs suggests that adding random repetitions to the
+                groups does not have a significant effect on the results. If we graph the scripts
+                against time using only the total number of elements to be tested we see the
+                following graph. The other approaches tried have been added in the second figure
+                below. </para>
+            <figure>
+                <title>XSLT 1.0 Approaches</title>
+                <mediaobject>
+                    <imageobject>
+                        <imagedata fileref="images/xslt-1-summary.svg"/>
+                    </imageobject>
+                </mediaobject>
+
+            </figure>
+
+            <figure>
+                <title>XSLT 2.0 Approaches</title>
+                <mediaobject>
+
+                    <imageobject>
+                        <imagedata fileref="images/xslt-2-3-summary.svg"/>
+                    </imageobject>
+                </mediaobject>
+            </figure>
+
+            <para> We can see that approach that uses the <literal>distinct-values()</literal>
+                function is effectively as fast as the approach that uses the
+                    <literal>xsl:for-each-group</literal> statement and that those are both as fast
+                as the Muenchian Grouping based approach. </para>
+            <para> We have multiple approaches to solving this problem that work as well as each
+                other and are all considerably superior to the accepted answer. </para>
+        </section>
+    </section>
+    <section xml:id="learning-and-training">
+        <title>Learning and Training</title>
+        <para> The amount of XSLT training on offer via training providers has diminished
+            dramatically over the last few years. In the UK the vast majority of training providers
+            list schedules for XSLT courses but will even attempt to identify a trainer to run those
+            courses unless enough people request the course. Experience suggests that this no longer
+            happens. The largest training providers in the UK have reduced their schedules for their
+            XSLT training to a minimum (QA training run a course once a year, Learning Tree have
+            removed it from their schedule). Custom training for corporate customers has also seen
+            reduced activity (Learning Tree running two on-site courses over the last two years) </para>
+        <para> Activity on mailing lists and SO shows a reduction over time. The graph below shows
+            the posts to the Mulberry Technologies XSLT mailing list over time. </para>
+        <figure>
+            <title>Activity over time</title>
+            <mediaobject>
+                <imageobject>
+                    <imagedata fileref="images/mulberry.svg"/>
+                </imageobject>
+                
+            </mediaobject>
+        </figure>
+        <para> However, the amount of XSLT development taking place has not diminished in the same
+            way (although conversation suggests some decrease). New developers are being hired but
+            most of those do not go through traditional training and, in fact, seem most likely to
+            use SO for their information. Whilst the XML (and XSLT) and the Web have no provided as
+            much work for XSLT developers as could have been the case, publishing and banking have
+            taken up much of the slack (although banking focusses more and more an XQuery and
+            MarkLogic). </para>
+        <para> Considering the average reputation of those asking and answering messages on SO, we
+            can see that the mean has consistently dropped over the nine years of data available
+            after an initial peak. This suggest that (bar a few honourable exceptions) those
+            answering questions about XSLT are becoming less skilled (if one assumes that reputation
+            can translate to 'skill') over time as are those asking the questions. </para>
+        <figure>
+            <title>Mean Reputation on Stack Overflow</title>
+            <mediaobject>
+                <imageobject>
+                    <imagedata fileref="images/stackoverflow.svg"/>
+                </imageobject>
+              </mediaobject>
+        </figure>
+        <para> This situation has implications for those of us who either answer questions on forums
+            or mailing lists and for those of us with a background in traditional training (or
+            both). </para>
+        <section xml:id="survey">
+            <title>Survey</title>
+            <para> In order to find out more about the way that developers and XML developers in
+                particular go about learning and studying we ran a small survey using Survey Monkey.
+                There were a total of forty four responses to this survey. Of those who responded
+                the majority were aged over thirty suggesting that they are unlikely to be at the
+                start of their careers. </para>
+            <para> We asked how they approached learning a new skill. We allowed users to answer
+                multiple times on this question. Only 10.5% of the 38 respondents who answered this
+                question would approach this task by attending traditional formal training. There
+                are many reasons why this may be the case but the important idea is that formal
+                training is no longer the primary approach to skills learning. This may have been
+                the case for many people at any time. However, corporate training programmes used to
+                assume that formal training was the primary approach and this is no longer the case. </para>
+            <figure>
+                <title/>
+                <mediaobject>
+                    <imageobject>
+                        <imagedata fileref="images/new-skill.png"/>
+                    </imageobject>
+                    <textobject>
+                        <phrase/>
+                    </textobject>
+                </mediaobject>
+            </figure>
+            <para> We also asked how respondents would go about solving a specific development
+                problem, again allowing them to respond multiple times. Over three quarters of those
+                responding identified online resources such as SO as part of their approach. </para>
+            <figure>
+                <title/>
+                <mediaobject>
+                    <imageobject>
+                        <imagedata fileref="images/problems.png"/>
+                    </imageobject>
+                    <textobject>
+                        <phrase/>
+                    </textobject>
+                </mediaobject>
+            </figure>
+            <para> We asked how many respondents used sites such as SO: </para>
+            <figure>
+                <title/>
+                <mediaobject>
+                    <imageobject>
+                        <imagedata fileref="images/so-usage.png"/>
+                    </imageobject>
+                    <textobject>
+                        <phrase/>
+                    </textobject>
+                </mediaobject>
+            </figure>
+            <para> Given that formal training is not a priority (or possibility) for survey
+                respondents and SO (and similar sites) appear to be extremely important, it seems
+                that those people answering questions need to be aware that they are taking the role
+                of trainer to some extent. </para>
+            <para> However, the survey responses seem to indicate that the identity and reliability
+                of the individual answering the question may not be particularly important to those
+                asking questions as more respondents felt that this was not important than did: </para>
+            <figure>
+                <title/>
+                <mediaobject>
+
+                    <imageobject>
+                        <imagedata fileref="images/question-rep.png"/>
+                    </imageobject>
+                    <textobject>
+                        <phrase/>
+                    </textobject>
+                </mediaobject>
+            </figure>
+            <para> The same appears to be true for searches for answers to existing questions: </para>
+            <figure>
+                <title/>
+                <mediaobject>
+                    <imageobject>
+                        <imagedata fileref="images/answer-rep.png"/>
+                    </imageobject>
+                    <textobject>
+                        <phrase/>
+                    </textobject>
+                </mediaobject>
+            </figure>
+            <para> Finally, we asked how respondents judged the quality of answers: </para>
+            <figure>
+                <title/>
+                <mediaobject>
+                    <imageobject>
+                        <imagedata fileref="images/answer-quality.png"/>
+                    </imageobject>
+                    <textobject>
+                        <phrase/>
+                    </textobject>
+                </mediaobject>
+            </figure>
+            <para> This gave an interesting range of answers as awareness of an answerer's
+                experience and reputation were ranked highly. The 'other' answers where given
+                related to how well answers could be evaluated based on the questioner's own
+                experience. </para>
+        </section>
+        <section xml:id="a-crisis-of-authority">
+            <title>A Crisis of Authority</title>
+            <para> The training industry and the way that developer's learn have been impacted by
+                the internet in a very similar way to the effect it has had on the traditional news
+                media. One of the criteria for news media is <emphasis>credibility</emphasis>.
+                Historically, credibility has been mostly defined by the
+                    <emphasis>authority</emphasis> of the media. The traditional news media has lost
+                authority due to the easer of publishing on the internet via the web and social
+                media (hence 'fake news'). </para>
+            <para> The ease with which developers can find information on the internet has lead to a
+                similar crisis of authority in the training industry. Credible information can be
+                found online much more easily and (importantly) at a much lower (if not zero) cost
+                compared to traditional technology training. The ability of an organisation to
+                optimise their website for Google has more impact on training than the the
+                credibility of the content on that website. This leads to sites such as W3Schools
+                having a depressingly high level of impact. </para>
+            <para> SO (and other similar sites such as application specific forums) attempt to
+                create a new measure of credibility based on <emphasis>reliability</emphasis>. SO
+                implements this measure of reliability. using the <emphasis>reputation</emphasis>
+                measure. The survey results above suggest (given the small number of respondents, it
+                can only be a suggestion) that the ubiquity of SO is as significant as the measure
+                of reliability. </para>
+            <para> One drawback of the reputation measure is that it does not give an indication of
+                whether or not the person answering the question has specialist knowledge or a large
+                degree of general knowledge (or good search engine skills). </para>
+            <para> Again, the change in the way that developers study and learn over the last ten
+                years or so has significant implications for the way that questions should be
+                approached. </para>
+        </section>
+        <section xml:id="training-in-the-age-of-so">
+            <title>Training in the Age of SO</title>
+            <para> If we look back to the question on SO the led to this investigation, we can see
+                that the accepted answer (mine) was inadequate in many ways. It was not the best
+                answer — it is inefficient at best. Additionally, I gave no explanation at all to
+                the person asking the question. </para>
+            <para> One of the benefits of traditional training approaches over video based online
+                training and Q&amp;A sites is <emphasis>context</emphasis>. Give a three day period
+                and a reasonable number of students, it is possible to apply training to their
+                context. The ongoing communication means trainers can offer a contextual explanation
+                of concepts and ensure that general concepts are understood. Q&amp;A sites such as
+                SO provide a simple way to provide specifci answers to specific questions and the
+                general problem that would benefit the questioner's understanding is lost. </para>
+            <para> It is simple to find many questions on SO that demonstrate this situation
+                including the one I give above. The drawback to this approach is that answering a
+                specific question without contextual and conceptual information does not improve the
+                knowledge of the person asking the question, it simply solves their immediate
+                problem. There is an increased chance that they will ask a similar question again
+                (or another user will) because the general problem and solution were not addressed. </para>
+            <para> XSLT is a niche programming language. If we take training and activity on mailing
+                lists and websites as one indication of the health of a programming language's
+                ecosystem and community, then XSLT is not thriving. According to the latest Tiobe
+                language ranking<footnote>
+                    <para>
+                        <link xlink:href="https://www.tiobe.com/tiobe-index/"
+                            >https://www.tiobe.com/tiobe-index/</link>
+                    </para>
+                </footnote>, we can see that XSLT is not in the top 100 development languages. Tiobe
+                still track it which does mean that it is in the top 150. </para>
+            <para> Many of the more popular languages are there due to trend and fashion. However,
+                many of those languages have vibrant user communities helping to drive them
+                forwards. The XML and XSLT community appears to be insular and hermetic to those
+                outside it to some extent (although not to the extent of the Perl community with PerlMonks<footnote>
+                    <para>
+                        <link xlink:href="http://perlmonks.org">http://perlmonks.org</link>
+                    </para>
+                </footnote>). Given the popularity of SO, it can be seen by many as an indicator of
+                the health of a language. </para>
+        </section>
+        <section xml:id="applying-that-to-the-question">
+            <title>Applying That to the Question</title>
+            <para> Looking back at the original question on SO, we can see that my answer failed to
+                provide any explanation of how it worked. The <literal>current()</literal> function
+                is useful and often confuses neophytes. I could have used this question as a quick
+                introduction to that concept and to the <literal>preceding-sibling</literal> axis
+                but I failed to. </para>
+            <para> Martin Honnen chastised me for not mentioning Muenchian Grouping. This was
+                deliberate because I felt that anyone asking such a simple question probably had
+                very little XSLT knowledge. I was wary of referring to Muenchian Grouping. However,
+                I did not explain the solution I provided in any way and this was a failure. </para>
+            <para> The fact that Jeni's blog on Muenchian Grouping is used as the prime reference is
+                also a failing. As a community we have not created the infrastructure that younger
+                developers expect (xslt.com is registered to a domain squatter) and are referring
+                novice developers to personal blogs for information. In fact, the blog is clear that
+                Jeni was referring to large datasets so this may not have been appropriate for the
+                user's situation. This is where SO fails compared to the Mulberry mailing list —
+                mailing lists provide an environment where asking for additional information works
+                well. The SO comments concept does not achieve that. </para>
+            <para> The analysis of approaches to solving the user's problem indicates clearly that
+                Muenchian Grouping is the ideal solution to the problem. It also shows that the
+                dataset must be fairly large (we tested a <literal>preceding-sibling</literal> axis
+                up to 1600 elements long) before the approach to the problem even starts to have a
+                significant impact on the speed (if not efficiency) of the solution. Whilst the
+                suggestion that Muenchian Grouping would be the best is clearly not an urban legend,
+                it isn't a panacea either and simpler solutions would have worked. </para>
+            <para> If a novice asks a question, good teaching practice suggests that a simple
+                solution is often the best first solution to give. More effective solutions can and
+                often should be given but automatically reaching for complex solutions does not
+                necessarily help the questioner. Answers which provide complex solutions without
+                explanation enhance the reputation of the language for being impenetrable and
+                complex. It is not unusual to encounter developers who still feel that writing an
+                application in Java or C# that uses the DOM to manipulation content is
+                    <emphasis>simpler</emphasis> than writing an little XSLT. </para>
+            <para> The best answers on SO provide explanation along with answers. Too often, we fail
+                to do that. When answering this question on SO, I omitted everything that makes it a
+                good answer. </para>
+        </section>
+    </section>
+    <section xml:id="summary">
+        <title>Summary</title>
+        <para> A short answer to a question on SO has led to a lot of thought and experiment. I
+            believe that SO and its peers are valuable opportunities for the XML and XSLT community
+            to provide ad hoc training to novice developers. Novice developers with good experience
+            of XSLT may become journeymen and valued members. of the community. </para>
+        <para> This suggests that those members of the community who answer questions on SO (and to
+            a lesser extent, the Mulberry mailing list) should consider that they are not just
+            answering questions but that they are also, much of the time, teaching. </para>
+        <para> Good teachers understand the context of the question. Most of those who answer XSLT
+            questions on SO ask questions in the form of comments. That is the maximum extent that
+            it allows but it is essential. </para>
+        <para> It is important to give context and explanation in an answer. An answer that provides
+            a short snippet of XPath or XSLT with no explanation might well solve a user's problem
+            but it does not add to the sum of knowledge held in SO (and thus, easily found via
+            search engines). If an answer has context and explanation, it becomes much more likely
+            that another user will be able to use that answer for a similar problem and the issue of
+            duplicate or near duplicate questions is diminished. </para>
+        <para> The online experience of a language is defined to a great extent by the
+            infrastructure and community provided by sites such as Stack Overflow, FAQs and mailing
+            lists. These must be treasured and properly curated in an era where minimal or
+            unchanging online presence is interpreted as death. </para>
+    </section>
+
+</article>

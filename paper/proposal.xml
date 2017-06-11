@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="http://docbook.org/xml/5.0/rng/docbook.rng" schematypens="http://relaxng.org/ns/structure/1.0"?>
+<?xml-model href="http://docbook.org/xml/5.0/rng/docbook.rng" type="application/xml" schematypens="http://purl.oclc.org/dsdl/schematron"?>
+<article xmlns="http://docbook.org/ns/docbook"
+  xmlns:xlink="http://www.w3.org/1999/xlink" version="5.0">
+  <info>
+    <title>Urban Legend or Best Practice</title>
+    <subtitle>Teaching XSLT in the era of Stack Overflow</subtitle>
+    <author>
+      <personname>
+        <firstname>Nic</firstname>
+        <surname>Gibson</surname>
+      </personname>
+      <affiliation>
+        <org>
+          <orgname>Corbas Consulting</orgname>
+        </org>
+      </affiliation>
+      <email>nicg@corb.as</email>
+    </author>
+  </info>
+
+  <section>
+    <info>
+      <title>Background</title>
+    </info>
+
+    <para>Traditional approaches to teaching XSLT and other development
+      technologies are undergoing rapid change. The rise of online training
+      platforms and peer to peer environments such as stackoverflow.com have
+      changed the way that developers learn technologies. In the XSLT world we
+      are extremely lucky to have some amazing people answering questions on the
+      Mulberry mailing list and Stack Overflow. However, when a developer asks a
+      question on Stack Overflow or uses Google to find an existing answer, the
+      <emphasis role="italic">why</emphasis> behind any particular answer is often lost. </para>
+
+    <para>A recent exchange on Stack Overflow led me to wonder how much of our
+      best practice might be urban legend and to consider how XSLT and other
+      technologies could be taught well in this online environment.</para>
+
+    <para>This paper will investigate one or two of these questions and answers
+      and consider whether ten year old questions and answers are the wisdom of
+      the ages or myths and legends. I will consider whether answering questions
+      online should be part of teaching or training experience or whether it is
+      simply outsourced problem solving. Which of these approaches leads to
+      higher quality XSLT development (and developers)?</para>
+
+  </section>
+
+  <section>
+    <info>
+      <title>Investigation</title>
+    </info>
+    <para>We shall look at the following question asked on Stack Overflow
+      earlier this year<footnote><para><link xlink:href="https://stackoverflow.com/questions/42023432/extract-unique-elements-from-the-input-xslt">https://stackoverflow.com/questions/42023432/extract-unique-elements-from-the-input-xslt</link></para></footnote>:</para>
+      <blockquote>
+          <para>Extract unique elements from the input XSLT</para>
+          <para>For example the input is this:</para>
+          <literallayout>
+&lt;root&gt;
+  &lt;command name=&quot;comm1&quot;&gt;aa&lt;/command&gt;
+  &lt;command name=&quot;comm2&quot;&gt;bb&lt;/command&gt;
+  &lt;command name=&quot;comm3&quot;&gt;cc&lt;/command&gt;
+  &lt;command name=&quot;comm3&quot;&gt;dd&lt;/command&gt;
+  &lt;command name=&quot;comm2&quot;&gt;ee&lt;/command&gt;
+  &lt;command name=&quot;comm1&quot;&gt;ff&lt;/command&gt;
+  &lt;command name=&quot;comm5&quot;&gt;gg&lt;/command&gt;
+&lt;/root&gt;
+          </literallayout>
+          <para>The desired output is this:</para>
+          
+          <literallayout>
+&lt;root&gt;
+  &lt;command name=&quot;comm1&quot;&gt;aa&lt;/command&gt;
+  &lt;command name=&quot;comm2&quot;&gt;bb&lt;/command&gt;
+  &lt;command name=&quot;comm3&quot;&gt;cc&lt;/command&gt;
+  &lt;command name=&quot;comm5&quot;&gt;gg&lt;/command&gt;
+&lt;/root&gt;
+            </literallayout>
+          <para>You can see that at the output, we don't have repeating tags ,the text values are not important here.</para>
+
+      </blockquote>
+    <para>The answer was <emphasis role="italic">not</emphasis> the best but it
+      was simple. The comments suggested that this was not a good answer and
+      referred to Jeni Tennison's explanation of Muenchian grouping. It seems
+      worth considering whether this is the right approach. Therefore, we will
+      test this thesis against multiple approaches.</para>
+    <para>In order to determine how much better the efficient approach is
+      compared to the simple approach, I have used a dataset the matches the one
+      given in the question above but varies from two distinct elements to five hundred distinct
+      elements with from 0% to 200% duplication (so a five hundred distinct
+      value set will include randomised sets of values containing a total of
+      five hundred to fifteen hundred elements). One hundred variants were
+      created at each level of duplication to increase confidence that the data
+      was actually randomised. This led to several hundred million distinct
+      documents.</para>
+    <para>Each document was processed using xsltproc, Saxon 9.7 and msxsl 4.0.<footnote>
+        <para>I hope to add exselt to this list</para>
+      </footnote>. Data will be graphed to show patterns but initial analysis
+      suggests that there is minimal improvement when different aproaches are
+      used. Three different XSLT variants are used although xsltproc and msxsl
+      cannot be used with the XSLT 2.0 solution (using
+        <code>xsl:for-each-group</code>). This may be due to the size of datasets
+      and I will increase the size to test this hypothesis.</para>
+
+
+    <para>The paper will also investigate one or two additional questions in
+      order to understand the state of questions and to compare
+      them with the actual performance of XSLT processors. </para>
+
+  </section>
+
+  <section>
+    <info>
+      <title>Argument</title>
+    </info>
+    <para>We can see from the initial results mentioned above that an optimised solution does
+      increase performance, but that the performance benefits are not as
+      significant as one might hope. If the comparison had been done several
+      years ago, this may have resulted in a more significant difference. </para>
+    <para>The amount of XSLT training on offer via training providers has
+      diminished dramatically over the last few years. However, the amount of
+      XSLT development taking place has not diminished in the same way (although
+      conversation suggests some decrease). New developers are being hired but
+      most of those do not go through traditional training and, in fact, seem
+      most likely to use Stack Overflow for their information.</para>
+    <para>A question and answer based environment cannot provide anything close
+      to the degree of context that can be provided in a conventional training
+      course. This seems to imply that care need be taken when answering
+      questions to ensure that not only are questions answered but that user is
+      provided with an answer that increases their knowledge as well as
+      resolving the immediate problem. </para>
+    <para>I will argue that questions which simply provide an answer are
+      unlikely to improve the quality of XSLT development in general and
+    are likely to lead to an more isolated development community and fewer skills
+    shared over a small community.</para>
+    <para>Equally, I will argue that complex solutions such as the one discussed
+    above do not help to increase the competence of the individual developer
+    as much as they could. A simple solution which can be understood may be applied
+    in a larger number of contexts than a complex one. If the developer then hits
+    the limits of that solution they may return to Stack Overflow with a greater
+    understanding of XSLT and be able to benefit further from complex solutions because
+    they can approach them from a better informed position.</para>
+    <para>I will argue that the change from instructor led training to question
+    and answer environments requires a change in the way that the community answer questions
+    and provide training if we are to ensure that XSLT continues to be a succesful
+    programming language with a vibrant developer community.</para>
+  </section>
+
+
+</article>
