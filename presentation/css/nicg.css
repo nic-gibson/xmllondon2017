@@ -1,0 +1,56 @@
+.reveal img.floater
+{
+    float: left;
+    border: none;
+    padding: 2rem;
+    max-width: 300px;
+}
+
+.reveal td
+{
+    vertical-align:top;
+    width: 50%;
+}
+
+.reveal td img
+{
+/*    width: 95%;
+    height: 95%;*/
+}
+
+.reveal h1,
+.reveal h2,
+.reveal h3,
+.reveal h4,
+.reveal h5,
+.reveal h6
+{
+    text-transform: none;
+    font-variant: small-caps;    
+}
+
+ul.none
+{
+    margin-left: 4rem;
+    /*list-style-type: none;*/
+}
+
+.clearer
+{
+    clear:both;
+}
+
+span.leader
+{
+    text-indent: 2rem;
+    padding-left: 2rem;
+    padding-right: 2rem;
+    font-weight: bold;
+}
+
+p.so
+{
+    text-align: left;
+    font-family: courier, fixed, monospace;
+    font-size: 0.75em;
+}
