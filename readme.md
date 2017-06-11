@@ -9,3 +9,7 @@
 ## The survey results are at
 
 * <http://bit.ly/2sNBvtu>
+
+## The presentation is rendered at
+
+* <http://xml.corbas.co.uk/xmllondon2017/>
